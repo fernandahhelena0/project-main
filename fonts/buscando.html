@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carregando...</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 50px;
+        }
+        .progress-container {
+            width: 100%;
+            max-width: 400px;
+            margin: 20px auto;
+            height: 10px;
+            background-color: #ddd;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        .progress-bar {
+            width: 0%;
+            height: 100%;
+            background-color: rgb(230, 56, 136);
+            border-radius: 5px;
+            transition: width 0.4s ease-in-out;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Buscando dados...</h2>
+    <div class="progress-container">
+        <div id="progress-bar" class="progress-bar"></div>
+    </div>
+
+    <script>
+        // Obtém o CPF da URL
+        function getQueryParam(param) {
+            let urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(param);
+        }
+
+        let cpf = getQueryParam("cpf");
+        if (!cpf) {
+            alert("CPF não informado.");
+            window.location.href = "index.html";
+        }
+
+        let progressBar = document.getElementById("progress-bar");
+
+        async function fetchData() {
+            let progress = 0;
+            let interval = setInterval(() => {
+                progress += 20;
+                progressBar.style.width = progress + "%";
+
+                if (progress >= 100) {
+                    clearInterval(interval);
+                }
+            }, 300);
+
+            try {
+                let apiUrl = `https://suaapi.com/consulta?cpf=${cpf}`;
+                let response = await fetch(apiUrl);
+                let data = await response.json();
+
+                if (!response.ok || !data.nome) {
+                    throw new Error("CPF não encontrado.");
+                }
+
+                setTimeout(() => {
+                    // Prepara os dados para o Typebot
+                    let nome = encodeURIComponent(data.nome || "Não encontrado");
+                    let sexo = encodeURIComponent(data.sexo || "Não informado");
+                    let idade = encodeURIComponent(data.idade || "Desconhecida");
+                    let nomeMae = encodeURIComponent(data.nome_mae || "Não informado");
+
+                    let typebotUrl = `https://seu-typebot.com?cpf=${cpf}&nome=${nome}&sexo=${sexo}&idade=${idade}&nome_mae=${nomeMae}`;
+                    window.location.href = typebotUrl;
+                }, 2000);
+
+            } catch (error) {
+                alert("Erro ao buscar os dados. Tente novamente.");
+                console.error(error);
+                window.location.href = "index.html";
+            }
+        }
+
+        fetchData();
+    </script>
+
+</body>
+</html>
